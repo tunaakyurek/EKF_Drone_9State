@@ -12,6 +12,7 @@
 % Author: Enhanced based on tutorial insights
 % Date: Created following Simulink tutorial methodology
 
+clear functions; % Ensure updated function definitions are used
 clear; clc; close all;
 
 %% SYSTEM INITIALIZATION
