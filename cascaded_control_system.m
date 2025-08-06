@@ -513,8 +513,30 @@ if nargin < 4
     current_time = 1.0; % Default to non-initialization time
 end
 
+% Extend grace period to allow EKF convergence before applying aggressive safety logic
+initialization_grace_sec = 2.0; % seconds
+is_initialization = (current_time < initialization_grace_sec);
+
+% If still within the initialization grace period, return early to avoid
+% triggering emergency recovery while the EKF is settling.  Basic damping
+% terms below are left intact, but the aggressive attitude/velocity limits
+% are deferred until the filter has converged.
+if is_initialization
+    return;
+end
+
 % Define initialization period (first 0.2 seconds)
-is_initialization = (current_time < 0.2);
+% Extend grace period to allow EKF convergence before applying aggressive safety logic
+initialization_grace_sec = 2.0; % seconds
+is_initialization = (current_time < initialization_grace_sec);
+
+% If still within the initialization grace period, return early to avoid
+% triggering emergency recovery while the EKF is settling.  Basic damping
+% terms below are left intact, but the aggressive attitude/velocity limits
+% are deferred until the filter has converged.
+if is_initialization
+    return;
+end
 
 % Extract state components
 att = x_est(7:9);
@@ -572,7 +594,8 @@ elseif attitude_magnitude > deg2rad(8) % Extremely reduced threshold
 end
 
 % Check for excessive velocities - extremely aggressive limiting
-if norm(vel) > 5 % Extremely reduced threshold
+% Relax velocity safety threshold – normal operation allows up to 10 m/s
+if norm(vel) > 10
     % Calculate velocity reduction factor based on speed - extremely aggressive reduction
     vel_mag = norm(vel);
     vel_reduction = max(0.2, 1.0 - (vel_mag - 3) / 2); % Extremely aggressive progressive reduction
