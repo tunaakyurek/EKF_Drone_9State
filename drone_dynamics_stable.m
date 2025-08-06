@@ -61,26 +61,26 @@ else
     % Use base coefficients already defined above
 end
 
-% Add extremely aggressive velocity limiting for safety
-vel_ned_mag = norm(vel);
-if vel_ned_mag > 5.0 % Much lower limit
-    vel_limit_factor = 5.0 / vel_ned_mag;
-    vel = vel * vel_limit_factor;
-    % Add strong braking force
-    braking_force = -1.0 * m * (vel_ned_mag - 4.0) * (vel / vel_ned_mag);
-    f_drag = f_drag + R * braking_force;
-elseif vel_ned_mag > 3.0 % Add progressive braking at even lower speeds
-    braking_force = -0.5 * m * (vel_ned_mag - 3.0) * (vel / vel_ned_mag);
-    f_drag = f_drag + R * braking_force;
-end
-
-% Calculate drag forces in body frame
+% Calculate drag forces in body frame first
 f_drag_body = -[drag_coeff_x * abs(vel_body(1)) * vel_body(1);
                 drag_coeff_y * abs(vel_body(2)) * vel_body(2);
                 drag_coeff_z * abs(vel_body(3)) * vel_body(3)];
 
 % Transform drag to NED frame
 f_drag = R * f_drag_body;
+
+% Add velocity limiting for safety
+vel_ned_mag = norm(vel);
+if vel_ned_mag > 5.0 % Velocity limit
+    vel_limit_factor = 5.0 / vel_ned_mag;
+    vel = vel * vel_limit_factor;
+    % Add strong braking force
+    braking_force = -1.0 * m * (vel_ned_mag - 4.0) * (vel / vel_ned_mag);
+    f_drag = f_drag + R * braking_force;
+elseif vel_ned_mag > 3.0 % Add progressive braking at lower speeds
+    braking_force = -0.5 * m * (vel_ned_mag - 3.0) * (vel / vel_ned_mag);
+    f_drag = f_drag + R * braking_force;
+end
 
 % Enhanced translational acceleration with cross-coupling effects
 acc = (f_thrust + f_gravity + f_drag) / m;
