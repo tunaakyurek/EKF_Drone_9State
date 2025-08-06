@@ -517,23 +517,7 @@ end
 initialization_grace_sec = 2.0; % seconds
 is_initialization = (current_time < initialization_grace_sec);
 
-% If still within the initialization grace period, return early to avoid
-% triggering emergency recovery while the EKF is settling.  Basic damping
-% terms below are left intact, but the aggressive attitude/velocity limits
-% are deferred until the filter has converged.
-if is_initialization
-    return;
-end
-
-% Define initialization period (first 0.2 seconds)
-% Extend grace period to allow EKF convergence before applying aggressive safety logic
-initialization_grace_sec = 2.0; % seconds
-is_initialization = (current_time < initialization_grace_sec);
-
-% If still within the initialization grace period, return early to avoid
-% triggering emergency recovery while the EKF is settling.  Basic damping
-% terms below are left intact, but the aggressive attitude/velocity limits
-% are deferred until the filter has converged.
+% Skip aggressive safety enforcement until after EKF convergence period
 if is_initialization
     return;
 end
@@ -593,18 +577,29 @@ elseif attitude_magnitude > deg2rad(8) % Extremely reduced threshold
     u(2:4) = u(2:4) * 0.3; % Extremely aggressive reduction
 end
 
-% Check for excessive velocities - extremely aggressive limiting
-% Relax velocity safety threshold – normal operation allows up to 10 m/s
-if norm(vel) > 10
+%% -----------------------------------------------------------------------
+% High-velocity protection (horizontal speed)
+% ------------------------------------------------------------------------
+
+% Determine the allowable horizontal speed threshold
+if isfield(params,'safety') && isfield(params.safety,'max_velocity_mps')
+    vel_threshold = params.safety.max_velocity_mps;
+else
+    vel_threshold = 10; % fallback default
+end
+
+horizontal_speed = norm(vel(1:2));
+
+if horizontal_speed > vel_threshold
     % Calculate velocity reduction factor based on speed - extremely aggressive reduction
-    vel_mag = norm(vel);
+    vel_mag = horizontal_speed;
     vel_reduction = max(0.2, 1.0 - (vel_mag - 3) / 2); % Extremely aggressive progressive reduction
     
     % Apply extremely strong limiting for high velocities
     u(1) = min(u(1), vel_reduction * params.mass * abs(params.g(3)));
     
     % Apply extremely strong corrective torques to slow down
-    vel_dir = vel(1:2) / norm(vel(1:2) + 1e-6);
+    vel_dir = vel(1:2) / (horizontal_speed + 1e-6);
     u(2) = u(2) - 0.3 * vel_dir(2) * vel_mag; % Extremely strong roll correction
     u(3) = u(3) + 0.3 * vel_dir(1) * vel_mag; % Extremely strong pitch correction
     
