@@ -85,5 +85,5 @@ params.gyro_momentum = 0.1;   % Rotor angular momentum (simplified)
 params.coriolis_enabled = true; % Enable Coriolis effects
 
 %% 7. Safety Limits (used by cascaded_control_system)
-params.safety.max_velocity_mps = 18;  % Allow up to 18 m/s horizontal before limiting
+params.safety.max_velocity_mps = 30;  % Allow up to 30 m/s horizontal before limiting
 params.safety.initial_grace_sec = 2.0; % Grace period for EKF convergence

@@ -12,7 +12,7 @@
 % Author: Enhanced based on tutorial insights
 % Date: Created following Simulink tutorial methodology
 
-clear functions; % Ensure updated function definitions are used
+rehash; clear functions; % Ensure updated function definitions are used
 clear; clc; close all;
 
 %% SYSTEM INITIALIZATION
@@ -239,6 +239,16 @@ end
 %% COMPREHENSIVE RESULTS ANALYSIS
 fprintf('\n=== Enhanced EKF Simulation Complete ===\n');
 logger.log('INFO', '=== Simulation Completed Successfully ===');
+
+% ------------------------------------------------------------------
+% Post-flight visualisation (trajectory animation & EKF accuracy)
+% ------------------------------------------------------------------
+try
+    animate_drone(t, x_true_hist, x_est_hist, gps_hist, waypoints);
+    plot_ekf_accuracy(t, x_true_hist, x_est_hist);
+catch visErr
+    warning('Visualisation error: %s', visErr.message);
+end
 
 % Performance metrics
 final_error = norm(x_true_hist(1:3,end) - waypoints(:,end));
