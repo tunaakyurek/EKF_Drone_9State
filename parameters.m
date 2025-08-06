@@ -55,7 +55,9 @@ params.Mag.sigma_rad = params.Mag.sigma_deg * pi/180; % radians
 % Position: Extremely low uncertainty for extremely smooth tracking
 % Velocity: Extremely low uncertainty for extremely stable response
 % Attitude: Extremely increased for extremely good stability and responsiveness
-params.Q = diag([0.01 0.01 0.01, 0.08 0.08 0.1, 0.06 0.06 0.08]); % EXTREMELY OPTIMIZED process noise
+% Use moderate process noise values that allow filter to converge without
+% becoming over-confident.  These are typical for a small quadrotor.
+params.Q = diag([0.05 0.05 0.05, 0.2 0.2 0.2, 0.1 0.1 0.1]);
 
 % ENHANCED: Adaptive noise scaling parameters - extremely conservative
 params.adaptive_noise = true;  % Enable adaptive noise scaling
@@ -71,10 +73,10 @@ params.R_baro = params.R_gps(3,3); % Equal weight with GPS-z
 params.R_mag = (6 * pi/180)^2; % INCREASED: 6 degrees for mag interference rejection
 
 % IMPROVED: Innovation gate thresholds for robust measurement acceptance
-params.innovation_gate_gps = 8.0;   % Reduced GPS innovation threshold (m)
-params.innovation_gate_baro = 4.0;  % Reduced barometer innovation threshold (m)  
-params.innovation_gate_mag = deg2rad(30); % Reduced magnetometer innovation threshold (rad)
-params.innovation_gate_imu = 15.0;  % Reduced IMU innovation threshold (m/s²)
+params.innovation_gate_gps = 25.0;   % Allow larger position innovations (m)
+params.innovation_gate_baro = 10.0;  % Baro innovation threshold (m)
+params.innovation_gate_mag  = deg2rad(60); % Magnetometer innovation threshold (rad)
+params.innovation_gate_imu  = 30.0;  % IMU innovation threshold (m/s²)
 params.max_angular_rate = deg2rad(120); % Maximum allowed angular rate
 
 %% 6. Cross-Coupling Parameters

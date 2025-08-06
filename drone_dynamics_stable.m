@@ -13,7 +13,7 @@ vel = x(4:6);
 att = x(7:9); % [phi; theta; psi]
 
 % Clamp actual roll and pitch to avoid singularities - extremely restrictive
-max_angle = deg2rad(10); % Further reduced to 10 degrees for maximum stability
+max_angle = deg2rad(30); % Allow realistic attitude for maneuvering
 att(1) = max(min(att(1), max_angle), -max_angle); % roll
 att(2) = max(min(att(2), max_angle), -max_angle); % pitch
 
@@ -65,13 +65,13 @@ end
 
 % Add extremely aggressive velocity limiting for safety
 vel_ned_mag = norm(vel);
-if vel_ned_mag > 5.0 % Much lower limit
-    vel_limit_factor = 5.0 / vel_ned_mag;
+if vel_ned_mag > 25.0 % Limit absolute speed to 25 m/s
+    vel_limit_factor = 25.0 / vel_ned_mag;
     vel = vel * vel_limit_factor;
     % Add strong braking force
     braking_force = -1.0 * m * (vel_ned_mag - 4.0) * (vel / vel_ned_mag);
     % braking_force will be added to f_drag after drag calculation
-elseif vel_ned_mag > 3.0 % Add progressive braking at even lower speeds
+elseif vel_ned_mag > 15.0 % Progressive braking above 15 m/s
     braking_force = -0.5 * m * (vel_ned_mag - 3.0) * (vel / vel_ned_mag);
     % braking_force will be added to f_drag later
 end

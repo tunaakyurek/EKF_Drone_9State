@@ -529,8 +529,8 @@ roll = att(1); pitch = att(2); yaw = att(3);
 
 % ENHANCED ATTITUDE RECOVERY SYSTEM
 % Check for severe attitude deviations - extremely conservative thresholds
-severe_attitude_threshold = deg2rad(15); % Extremely reduced threshold
-critical_attitude_threshold = deg2rad(25); % Extremely reduced threshold
+severe_attitude_threshold = deg2rad(30); % Reasonable safety threshold
+critical_attitude_threshold = deg2rad(45); % Critical threshold
 
 attitude_magnitude = norm(att(1:2));
 
@@ -565,13 +565,13 @@ elseif attitude_magnitude > severe_attitude_threshold
     end
     
     % Gradual attitude recovery with extremely strong correction
-    recovery_factor = 0.1; % Extremely reduced for more aggressive safety
+    recovery_factor = 0.5; % Moderate recovery factor
     u(1) = min(u(1), 0.3 * params.mass * abs(params.g(3))); % Extremely low thrust limit
     u(2) = recovery_factor * u(2) - 3.0 * roll; % Extremely strong roll recovery bias
     u(3) = recovery_factor * u(3) - 3.0 * pitch; % Extremely strong pitch recovery bias
     u(4) = recovery_factor * u(4) - 1.0 * sign(yaw) * min(abs(yaw), deg2rad(30)); % Extremely strong yaw damping
     
-elseif attitude_magnitude > deg2rad(8) % Extremely reduced threshold
+elseif attitude_magnitude > deg2rad(20) % Moderate threshold
     % MODERATE: Extremely aggressive safety reduction
     u(1) = min(u(1), 0.5 * params.mass * abs(params.g(3)));
     u(2:4) = u(2:4) * 0.3; % Extremely aggressive reduction
