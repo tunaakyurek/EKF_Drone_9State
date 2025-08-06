@@ -135,9 +135,15 @@ for k = 1:N
     current_time = t(k);
     
     %% STEP 1: FLIGHT MANAGEMENT SYSTEM
-    % Update flight mode based on mission progress and sensor availability
+    % Decide which state to use for flight logic
+    if params.use_state_estimator
+        state_for_logic = x_est;
+    else
+        state_for_logic = x_true;
+    end
+
     [flight_mgmt, mode_changed] = update_flight_management(...
-        flight_mgmt, x_est, waypoints, wp_idx, flight_modes, current_time);
+        flight_mgmt, state_for_logic, waypoints, wp_idx, flight_modes, current_time);
     
     current_mode = flight_mgmt.current_mode;
     mode_hist{k} = current_mode;
@@ -153,16 +159,22 @@ for k = 1:N
     
     % Store sensor measurements
     imu_hist(:,k) = [sensors.accel; sensors.gyro];
-    
-    %% STEP 3: ENHANCED SENSOR FUSION & STATE ESTIMATION
-    % IMPROVED: Pass additional parameters for enhanced EKF processing
-    ekf_params = params;
-    ekf_params.current_time = current_time;
-    ekf_params.gps_available = sensors.gps_health && ~any(isnan(sensors.gps));
-    
-    % Multi-rate sensor fusion following tutorial methodology
-    [x_est, P, sensor_updates] = enhanced_sensor_fusion(...
-        x_est, P, sensors, sensor_fusion_config, ekf_params, dt, k);
+
+    %% STEP 3: STATE ESTIMATION (optional)
+    if params.use_state_estimator
+        % --- Run EKF / chosen estimator ----------------------------------
+        ekf_params = params;
+        ekf_params.current_time   = current_time;
+        ekf_params.gps_available  = sensors.gps_health && ~any(isnan(sensors.gps));
+
+        [x_est, P, sensor_updates] = enhanced_sensor_fusion( ...
+            x_est, P, sensors, sensor_fusion_config, ekf_params, dt, k);
+    else
+        % --- Bypass estimator: use ground-truth --------------------------
+        x_est = x_true;
+        sensor_updates = struct('gps_updated',false,'baro_updated',false, ...
+                                'mag_updated',false,'imu_updated',false);
+    end
     
     % Store sensor-specific measurements when available
     if sensor_updates.gps_updated
@@ -195,8 +207,14 @@ for k = 1:N
     end
     
     %% STEP 5: CASCADED CONTROL ARCHITECTURE
-    % Three-level cascaded control following tutorial design
-    u = cascaded_control_system(x_est, waypoints(:,wp_idx), current_mode, ...
+    % Controller uses estimated or true state depending on flag
+    if params.use_state_estimator
+        x_ctrl = x_est;
+    else
+        x_ctrl = x_true;
+    end
+
+    u = cascaded_control_system(x_ctrl, waypoints(:,wp_idx), current_mode, ...
                                 control_sys, params, dt, current_time);
     
     %% STEP 6: PHYSICS SIMULATION
