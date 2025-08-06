@@ -321,6 +321,9 @@ violation = altitude_violation || horizontal_violation;
 end
 
 function valid = is_valid_mode_transition(from_mode, to_mode)
+% Convert to lower case & trim to avoid false mismatches
+from_mode = lower(strtrim(from_mode));
+to_mode   = lower(strtrim(to_mode));
 % Validate mode transitions based on state machine rules
 
 % Define valid transitions (following tutorial methodology)

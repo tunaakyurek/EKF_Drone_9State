@@ -34,7 +34,8 @@ g = params.g;
 
 % Enhanced dynamics with improved aerodynamic model
 f_gravity = m * g;
-f_thrust = R * [0; 0; T];
+% Positive thrust should act opposite to gravity (upwards in NED with negative z)
+f_thrust = R * [0; 0; -T];
 
 % Enhanced aerodynamic drag with velocity-dependent coefficients - extreme damping
 vel_body = R' * vel; % Transform velocity to body frame

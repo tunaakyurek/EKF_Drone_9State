@@ -34,7 +34,8 @@ g = params.g;
 
 % Dynamics with cross-coupling effects
 f_gravity = m * g;
-f_thrust = R * [0; 0; T];
+% Positive thrust acts upward in NED -> negative Z in NED frame
+f_thrust = R * [0; 0; -T];
 
 % Add aerodynamic drag (cross-coupling effect) - extremely aggressive damping
 vel_body = R' * vel; % Transform velocity to body frame
