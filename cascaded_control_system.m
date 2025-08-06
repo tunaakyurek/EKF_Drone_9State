@@ -571,8 +571,8 @@ elseif attitude_magnitude > deg2rad(12) % Adjusted threshold for moderate correc
     u(2:4) = u(2:4) * 0.5; % Moderate reduction for safety
 end
 
-% Check for excessive velocities - adjusted for normal operation
-if norm(vel) > 10 % Adjusted threshold for normal flight speeds
+% Check for excessive velocities – parameterised for flexibility
+if norm(vel) > params.safety_velocity_warn % Begin thrust limiting above this speed
     % Calculate velocity reduction factor based on speed - extremely aggressive reduction
     vel_mag = norm(vel);
     vel_reduction = max(0.2, 1.0 - (vel_mag - 3) / 2); % Extremely aggressive progressive reduction
@@ -596,7 +596,7 @@ if norm(vel) > 10 % Adjusted threshold for normal flight speeds
     end
     
     % Emergency braking for extreme velocities
-    if vel_mag > 15
+    if vel_mag > params.safety_velocity_emergency
         u(1) = 0.1 * params.mass * abs(params.g(3)); % Minimal thrust for emergency braking
         u(2) = -0.5 * vel_dir(2) * vel_mag; % Maximum roll correction
         u(3) = 0.5 * vel_dir(1) * vel_mag; % Maximum pitch correction

@@ -321,12 +321,15 @@ violation = altitude_violation || horizontal_violation;
 end
 
 function valid = is_valid_mode_transition(from_mode, to_mode)
+% Convert to lower case & trim to avoid false mismatches
+from_mode = lower(strtrim(from_mode));
+to_mode   = lower(strtrim(to_mode));
 % Validate mode transitions based on state machine rules
 
 % Define valid transitions (following tutorial methodology)
 valid_transitions = {
     'disarmed', {'stabilized'};
-    'stabilized', {'altitude', 'disarmed', 'emergency_land'};
+    'stabilized', {'altitude', 'return_to_home', 'disarmed', 'emergency_land'};
     'altitude', {'position', 'stabilized', 'return_to_home', 'emergency_land'};
     'position', {'trajectory', 'altitude', 'return_to_home', 'emergency_land'};
     'trajectory', {'position', 'return_to_home', 'emergency_land'};

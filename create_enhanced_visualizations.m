@@ -77,8 +77,8 @@ plot3(waypoints(1,:), waypoints(2,:), waypoints(3,:), 'ms', ...
       'MarkerSize', 12, 'MarkerFaceColor', 'magenta', 'LineWidth', 2);
 
 % Connect waypoints with path
-plot3(waypoints(1,:), waypoints(2,:), waypoints(3,:), 'm--', ...
-      'LineWidth', 1.5, 'Alpha', 0.6);
+plot3(waypoints(1,:), waypoints(2,:), waypoints(3,:), ...
+      'LineStyle', '--', 'LineWidth', 1.5, 'Color', [1 0 1 0.6]);
 
 % Mark start and end points
 plot3(x_true_hist(1,1), x_true_hist(2,1), x_true_hist(3,1), 'go', ...
@@ -242,7 +242,7 @@ plot(t, x_true_hist(1,:), 'b-', 'LineWidth', 2); hold on;
 plot(t, x_est_hist(1,:), 'r--', 'LineWidth', 2);
 % Mark waypoint times (simplified)
 for i = 1:size(waypoints,2)
-    yline(waypoints(1,i), 'g:', sprintf('WP%d', i), 'Alpha', 0.7);
+    yline(waypoints(1,i), 'g:', sprintf('WP%d', i), 'LineWidth', 1.2);
 end
 grid on;
 xlabel('Time (s)'); ylabel('North Position (m)');
@@ -253,7 +253,7 @@ subplot(2,3,2);
 plot(t, x_true_hist(2,:), 'b-', 'LineWidth', 2); hold on;
 plot(t, x_est_hist(2,:), 'r--', 'LineWidth', 2);
 for i = 1:size(waypoints,2)
-    yline(waypoints(2,i), 'g:', sprintf('WP%d', i), 'Alpha', 0.7);
+    yline(waypoints(2,i), 'g:', sprintf('WP%d', i), 'LineWidth', 1.2);
 end
 grid on;
 xlabel('Time (s)'); ylabel('East Position (m)');
@@ -264,7 +264,7 @@ subplot(2,3,3);
 plot(t, -x_true_hist(3,:), 'b-', 'LineWidth', 2); hold on;
 plot(t, -x_est_hist(3,:), 'r--', 'LineWidth', 2);
 for i = 1:size(waypoints,2)
-    yline(-waypoints(3,i), 'g:', sprintf('WP%d', i), 'Alpha', 0.7);
+    yline(-waypoints(3,i), 'g:', sprintf('WP%d', i), 'LineWidth', 1.2);
 end
 grid on;
 xlabel('Time (s)'); ylabel('Altitude (m)');
