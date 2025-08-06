@@ -242,7 +242,7 @@ plot(t, x_true_hist(1,:), 'b-', 'LineWidth', 2); hold on;
 plot(t, x_est_hist(1,:), 'r--', 'LineWidth', 2);
 % Mark waypoint times (simplified)
 for i = 1:size(waypoints,2)
-    yline(waypoints(1,i), 'g:', sprintf('WP%d', i), 'Alpha', 0.7);
+    yline(waypoints(1,i), 'g:', sprintf('WP%d', i));
 end
 grid on;
 xlabel('Time (s)'); ylabel('North Position (m)');
@@ -253,7 +253,7 @@ subplot(2,3,2);
 plot(t, x_true_hist(2,:), 'b-', 'LineWidth', 2); hold on;
 plot(t, x_est_hist(2,:), 'r--', 'LineWidth', 2);
 for i = 1:size(waypoints,2)
-    yline(waypoints(2,i), 'g:', sprintf('WP%d', i), 'Alpha', 0.7);
+    yline(waypoints(2,i), 'g:', sprintf('WP%d', i));
 end
 grid on;
 xlabel('Time (s)'); ylabel('East Position (m)');
@@ -264,7 +264,7 @@ subplot(2,3,3);
 plot(t, -x_true_hist(3,:), 'b-', 'LineWidth', 2); hold on;
 plot(t, -x_est_hist(3,:), 'r--', 'LineWidth', 2);
 for i = 1:size(waypoints,2)
-    yline(-waypoints(3,i), 'g:', sprintf('WP%d', i), 'Alpha', 0.7);
+    yline(-waypoints(3,i), 'g:', sprintf('WP%d', i));
 end
 grid on;
 xlabel('Time (s)'); ylabel('Altitude (m)');
@@ -411,7 +411,7 @@ grid on;
 
 % Error correlation
 subplot(2,3,6);
-scatter(pos_errors, estimation_errors, 30, 'filled', 'Alpha', 0.6);
+scatter(pos_errors, estimation_errors, 30, 'filled');
 xlabel('Position Error (m)');
 ylabel('Estimation Error (m)');
 title('Error Correlation', 'FontWeight', 'bold');

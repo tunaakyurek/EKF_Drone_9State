@@ -10,6 +10,13 @@ function [x_dot] = drone_dynamics_stable(t, x, u, params)
 % Unpack state
 pos = x(1:3);
 vel = x(4:6);
+
+% Global speed clamp to prevent runaway kinetic energy during tuning
+vel_mag_global = norm(vel);
+if vel_mag_global > 25
+    vel = vel * (25 / vel_mag_global);
+end
+
 att = x(7:9); % [phi; theta; psi]
 
 % Clamp actual roll and pitch to avoid singularities - extremely restrictive

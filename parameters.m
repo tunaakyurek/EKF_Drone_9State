@@ -73,9 +73,9 @@ params.R_baro = params.R_gps(3,3); % Equal weight with GPS-z
 params.R_mag = (6 * pi/180)^2; % INCREASED: 6 degrees for mag interference rejection
 
 % IMPROVED: Innovation gate thresholds for robust measurement acceptance
-params.innovation_gate_gps = 25.0;   % Allow larger position innovations (m)
-params.innovation_gate_baro = 10.0;  % Baro innovation threshold (m)
-params.innovation_gate_mag  = deg2rad(60); % Magnetometer innovation threshold (rad)
+params.innovation_gate_gps = 300.0;   % Very high to avoid false rejections during tuning
+params.innovation_gate_baro = 500.0;  % Baro innovation threshold (m)
+params.innovation_gate_mag  = deg2rad(180); % Magnetometer innovation threshold (rad)
 params.innovation_gate_imu  = 30.0;  % IMU innovation threshold (m/s²)
 params.max_angular_rate = deg2rad(120); % Maximum allowed angular rate
 

@@ -529,8 +529,8 @@ roll = att(1); pitch = att(2); yaw = att(3);
 
 % ENHANCED ATTITUDE RECOVERY SYSTEM
 % Check for severe attitude deviations - extremely conservative thresholds
-severe_attitude_threshold = deg2rad(30); % Reasonable safety threshold
-critical_attitude_threshold = deg2rad(45); % Critical threshold
+severe_attitude_threshold = deg2rad(25); % Reasonable safety threshold
+critical_attitude_threshold = deg2rad(40); % Critical threshold
 
 attitude_magnitude = norm(att(1:2));
 
