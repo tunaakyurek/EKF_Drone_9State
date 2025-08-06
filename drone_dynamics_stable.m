@@ -32,6 +32,10 @@ if isfield(params, 'I'), I = params.I; end
 
 g = params.g;
 
+% Initialize aerodynamic force placeholders to avoid undefined-variable errors
+f_drag = zeros(3,1);
+braking_force = [];
+
 % Enhanced dynamics with improved aerodynamic model
 f_gravity = m * g;
 f_thrust = R * [0; 0; T];
