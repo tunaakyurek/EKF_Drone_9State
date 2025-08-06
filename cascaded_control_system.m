@@ -513,14 +513,14 @@ if nargin < 4
     current_time = 1.0; % Default to non-initialization time
 end
 
-% Extend grace period to allow EKF convergence before applying aggressive safety logic
-initialization_grace_sec = 2.0; % seconds
-is_initialization = (current_time < initialization_grace_sec);
-
-% Skip aggressive safety enforcement until after EKF convergence period
-if is_initialization
-    return;
+% Grace period before warnings (leave safety corrections active)
+if isfield(params,'safety') && isfield(params.safety,'initial_grace_sec')
+    initialization_grace_sec = params.safety.initial_grace_sec;
+else
+    initialization_grace_sec = 2.0; % default
 end
+
+is_initialization = (current_time < initialization_grace_sec);
 
 % Extract state components
 att = x_est(7:9);
