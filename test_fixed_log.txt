@@ -1,0 +1,33 @@
+=================================================================
+ENHANCED EKF QUADCOPTER AUTOPILOT - DETAILED SIMULATION LOG
+Based on MATLAB Simulink Autonomous Flight Design Tutorial
+=================================================================
+Log Started: 05-Aug-2025 13:10:05
+MATLAB Version: 23.2.0.2859533 (R2023b) Update 10
+=================================================================
+
+
+--- SYSTEM STATUS ---
+initial_position: [0 0 0]
+initial_attitude: [0 0 0]
+flight_mode: stabilized
+sensor_health: {gps:true, baro:true, mag:true, imu:true}
+--------------------
+
+[13:10:06.184] INFO: Testing mixed data type logging
+[0.000] FLIGHT MODE: STABILIZED (System initialization)
+
+
+=================================================================
+SIMULATION SUMMARY AND ANALYSIS
+=================================================================
+
+FLIGHT MODE TRANSITIONS:
+
+EMERGENCY EVENTS:
+  None recorded.
+
+=================================================================
+Log file saved: test_fixed_log.txt
+Analysis complete: 05-Aug-2025 13:10:06
+=================================================================
