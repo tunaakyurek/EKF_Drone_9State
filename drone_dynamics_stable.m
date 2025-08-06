@@ -70,19 +70,25 @@ if vel_ned_mag > 5.0 % Much lower limit
     vel = vel * vel_limit_factor;
     % Add strong braking force
     braking_force = -1.0 * m * (vel_ned_mag - 4.0) * (vel / vel_ned_mag);
-    f_drag = f_drag + R * braking_force;
+    % braking_force will be added to f_drag after drag calculation
 elseif vel_ned_mag > 3.0 % Add progressive braking at even lower speeds
     braking_force = -0.5 * m * (vel_ned_mag - 3.0) * (vel / vel_ned_mag);
-    f_drag = f_drag + R * braking_force;
+    % braking_force will be added to f_drag later
 end
 
 % Calculate drag forces in body frame
+% --- Aerodynamic drag in body frame ---
 f_drag_body = -[drag_coeff_x * abs(vel_body(1)) * vel_body(1);
                 drag_coeff_y * abs(vel_body(2)) * vel_body(2);
                 drag_coeff_z * abs(vel_body(3)) * vel_body(3)];
 
 % Transform drag to NED frame
 f_drag = R * f_drag_body;
+
+% --- Additional braking force accumulated earlier ---
+if exist('braking_force','var') && ~isempty(braking_force)
+    f_drag = f_drag + R * braking_force;
+end
 
 % Enhanced translational acceleration with cross-coupling effects
 acc = (f_thrust + f_gravity + f_drag) / m;
