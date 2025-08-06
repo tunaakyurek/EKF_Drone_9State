@@ -68,11 +68,18 @@ fprintf('\n');
 x0 = zeros(9,1); % [x,y,z,vx,vy,vz,roll,pitch,yaw]
 
 % Explicitly ensure zero attitude and velocity for clean initialization
-x0(4:9) = zeros(6,1); % Set velocity and attitude to exactly zero
+x0(1:3) = [0; 0; 0];     % Start at origin
+x0(4:6) = [0; 0; 0];     % Zero initial velocity
+x0(7:9) = [0; 0; 0];     % Level attitude (roll=0, pitch=0, yaw=0)
 
 x_true = x0;     % True state (physics simulation)
 x_est = x0;      % EKF estimated state
 P = 0.1*eye(9);  % Covariance matrix
+
+% Add small initial uncertainty to help filter convergence
+P(1:3,1:3) = 0.01*eye(3);  % Position uncertainty
+P(4:6,4:6) = 0.1*eye(3);   % Velocity uncertainty  
+P(7:9,7:9) = 0.01*eye(3);  % Attitude uncertainty
 
 % Enhanced state history with mode tracking
 x_true_hist = zeros(9, N);
@@ -316,25 +323,25 @@ function control_sys = initialize_control_system(params)
     % Initialize cascaded control system following tutorial methodology
     control_sys = struct();
     
-    % Position control (outer loop) - extremely conservative gains
+    % Position control (outer loop) - balanced gains for smooth tracking
     control_sys.pos_pid = struct();
-    control_sys.pos_pid.Kp = [0.004; 0.004; 0.006];   % Extremely reduced for extremely smooth tracking
-    control_sys.pos_pid.Ki = [0.00005; 0.00005; 0.0001]; % Extremely reduced integral gain to prevent overshoot
-    control_sys.pos_pid.Kd = [0.05; 0.05; 0.06];   % Extremely increased derivative action for stability
+    control_sys.pos_pid.Kp = [0.012; 0.012; 0.018];   % Balanced proportional gains
+    control_sys.pos_pid.Ki = [0.0002; 0.0002; 0.0003]; % Small integral gain to prevent overshoot
+    control_sys.pos_pid.Kd = [0.025; 0.025; 0.03];   % Appropriate derivative action for stability
     control_sys.pos_pid.int_err = zeros(3,1);
     control_sys.pos_pid.prev_err = zeros(3,1);
     
-    % Attitude control (middle loop) - extremely conservative gains
+    % Attitude control (middle loop) - balanced gains for responsive control
     control_sys.att_pd = struct();
-    control_sys.att_pd.Kp = [0.3; 0.3; 0.2];  % Extremely reduced for extremely gentle attitude control
-    control_sys.att_pd.Kd = [1.5; 1.5; 0.8];  % Extremely increased damping for extremely stable response
+    control_sys.att_pd.Kp = [0.8; 0.8; 0.6];  % Balanced attitude control gains
+    control_sys.att_pd.Kd = [0.3; 0.3; 0.15];  % Appropriate damping for stable response
     control_sys.att_pd.prev_err = zeros(3,1);
     
-    % Velocity feedback (inner position loop) - extremely reduced for stability
-    control_sys.vel_gains = [0.1; 0.1; 0.2];  % Extremely reduced velocity feedback for extremely smooth response
+    % Velocity feedback (inner position loop) - balanced for smooth response
+    control_sys.vel_gains = [0.3; 0.3; 0.4];  % Balanced velocity feedback gains
     
-    % Angular rate feedback (inner attitude loop) - extremely increased for stability
-    control_sys.rate_gains = [0.4; 0.4; 0.25]; % Extremely increased rate feedback for extremely stable damping
+    % Angular rate feedback (inner attitude loop) - balanced for stability
+    control_sys.rate_gains = [0.2; 0.2; 0.15]; % Balanced rate feedback for stable damping
 end
 
 function control_sys = reset_control_integrators(control_sys)

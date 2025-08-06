@@ -12,8 +12,8 @@ pos = x(1:3);
 vel = x(4:6);
 att = x(7:9); % [phi; theta; psi]
 
-% Clamp actual roll and pitch to avoid singularities - extremely restrictive
-max_angle = deg2rad(10); % Further reduced to 10 degrees for maximum stability
+% Clamp actual roll and pitch to avoid singularities - reasonable limits
+max_angle = deg2rad(25); % Adjusted to 25 degrees for normal operation
 att(1) = max(min(att(1), max_angle), -max_angle); % roll
 att(2) = max(min(att(2), max_angle), -max_angle); % pitch
 
@@ -40,27 +40,25 @@ f_thrust = R * [0; 0; T];
 vel_body = R' * vel; % Transform velocity to body frame
 vel_mag = norm(vel_body);
 
-% Improved drag model with different coefficients for different axes - extremely high values
-drag_coeff_x = 0.3; % Forward drag (doubled again for extreme stability)
-drag_coeff_y = 0.5; % Lateral drag (doubled again for extreme stability)
-drag_coeff_z = 0.6; % Vertical drag (doubled again for extreme altitude control)
+% Improved drag model with different coefficients for different axes - balanced values
+drag_coeff_x = 0.15; % Forward drag (balanced for normal flight)
+drag_coeff_y = 0.25; % Lateral drag (balanced for stability)
+drag_coeff_z = 0.3; % Vertical drag (balanced for altitude control)
 
-% Velocity-dependent drag coefficients with extremely aggressive scaling
-if vel_mag > 3.0 % Lower threshold
-    % High speed - extremely strong drag for stability
-    drag_coeff_x = 0.6; % Doubled again
-    drag_coeff_y = 0.8; % Doubled again
-    drag_coeff_z = 0.9; % Doubled again
-elseif vel_mag > 1.5 % Lower threshold
-    % Medium speed - very strong drag
-    drag_coeff_x = 0.4; % Doubled again
-    drag_coeff_y = 0.6; % Doubled again
-    drag_coeff_z = 0.7; % Doubled again
+% Velocity-dependent drag coefficients with progressive scaling
+if vel_mag > 5.0 % Normal threshold for higher speeds
+    % High speed - increased drag for stability
+    drag_coeff_x = 0.3; % Increased for high speed
+    drag_coeff_y = 0.4; % Increased for high speed
+    drag_coeff_z = 0.5; % Increased for high speed
+elseif vel_mag > 2.5 % Medium speed threshold
+    % Medium speed - moderate drag increase
+    drag_coeff_x = 0.2; % Moderate increase
+    drag_coeff_y = 0.3; % Moderate increase
+    drag_coeff_z = 0.35; % Moderate increase
 else
-    % Low speed - strong drag for precise control
-    drag_coeff_x = 0.3; % Doubled again
-    drag_coeff_y = 0.5; % Doubled again
-    drag_coeff_z = 0.6; % Doubled again
+    % Low speed - base drag for precise control
+    % Use base coefficients already defined above
 end
 
 % Add extremely aggressive velocity limiting for safety

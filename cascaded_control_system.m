@@ -513,8 +513,8 @@ if nargin < 4
     current_time = 1.0; % Default to non-initialization time
 end
 
-% Define initialization period (first 0.2 seconds)
-is_initialization = (current_time < 0.2);
+% Define initialization period (first 1.0 seconds for better stabilization)
+is_initialization = (current_time < 1.0);
 
 % Extract state components
 att = x_est(7:9);
@@ -522,9 +522,9 @@ vel = x_est(4:6);
 roll = att(1); pitch = att(2); yaw = att(3);
 
 % ENHANCED ATTITUDE RECOVERY SYSTEM
-% Check for severe attitude deviations - extremely conservative thresholds
-severe_attitude_threshold = deg2rad(15); % Extremely reduced threshold
-critical_attitude_threshold = deg2rad(25); % Extremely reduced threshold
+% Check for severe attitude deviations - adjusted thresholds for stable operation
+severe_attitude_threshold = deg2rad(20); % Adjusted threshold for warnings
+critical_attitude_threshold = deg2rad(30); % Adjusted critical threshold
 
 attitude_magnitude = norm(att(1:2));
 
@@ -565,14 +565,14 @@ elseif attitude_magnitude > severe_attitude_threshold
     u(3) = recovery_factor * u(3) - 3.0 * pitch; % Extremely strong pitch recovery bias
     u(4) = recovery_factor * u(4) - 1.0 * sign(yaw) * min(abs(yaw), deg2rad(30)); % Extremely strong yaw damping
     
-elseif attitude_magnitude > deg2rad(8) % Extremely reduced threshold
-    % MODERATE: Extremely aggressive safety reduction
-    u(1) = min(u(1), 0.5 * params.mass * abs(params.g(3)));
-    u(2:4) = u(2:4) * 0.3; % Extremely aggressive reduction
+elseif attitude_magnitude > deg2rad(12) % Adjusted threshold for moderate corrections
+    % MODERATE: Apply safety reduction for moderate attitudes
+    u(1) = min(u(1), 0.7 * params.mass * abs(params.g(3)));
+    u(2:4) = u(2:4) * 0.5; % Moderate reduction for safety
 end
 
-% Check for excessive velocities - extremely aggressive limiting
-if norm(vel) > 5 % Extremely reduced threshold
+% Check for excessive velocities - adjusted for normal operation
+if norm(vel) > 10 % Adjusted threshold for normal flight speeds
     % Calculate velocity reduction factor based on speed - extremely aggressive reduction
     vel_mag = norm(vel);
     vel_reduction = max(0.2, 1.0 - (vel_mag - 3) / 2); % Extremely aggressive progressive reduction
@@ -596,7 +596,7 @@ if norm(vel) > 5 % Extremely reduced threshold
     end
     
     % Emergency braking for extreme velocities
-    if vel_mag > 8
+    if vel_mag > 15
         u(1) = 0.1 * params.mass * abs(params.g(3)); % Minimal thrust for emergency braking
         u(2) = -0.5 * vel_dir(2) * vel_mag; % Maximum roll correction
         u(3) = 0.5 * vel_dir(1) * vel_mag; % Maximum pitch correction
