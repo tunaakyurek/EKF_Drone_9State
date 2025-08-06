@@ -371,7 +371,7 @@ if window_size > 1
 end
 
 hold on;
-plot(t, pos_errors, 'r-', 'Alpha', 0.3, 'LineWidth', 1);
+plot(t, pos_errors, 'LineWidth', 1, 'Color', [1 0 0 0.3]);
 
 grid on;
 xlabel('Time (s)');

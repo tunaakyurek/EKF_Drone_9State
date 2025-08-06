@@ -10,6 +10,10 @@ params.Ts.GPS    = 0.05;      % GPS sample time (20 Hz)
 params.Ts.Baro   = 0.05;     % Barometer sample time (20 Hz)
 params.Ts.Mag    = 0.05;     % Magnetometer sample time (20 Hz)
 params.sim_duration = 60;   % seconds
+%% Safety Parameters
+% Velocity safety thresholds (used by safety_check_control)
+params.safety_velocity_warn = 15;      % m/s threshold for thrust limiting
+params.safety_velocity_emergency = 30; % m/s threshold for emergency braking
 
 %% 2. Location-Specific Parameters (Espoo, Finland)
 params.g = [0; 0; -9.819];   % Gravity (m/s^2)
