@@ -1,13 +1,25 @@
 function [x_dot] = drone_dynamics(t, x, u, params)
-% drone_dynamics - 6DOF nonlinear drone model (9 states) with cross-coupling
-%   x = [pos; vel; att] where:
-%       pos = [x; y; z] (NED, m)
-%       vel = [vx; vy; vz] (NED, m/s)
-%       att = [roll; pitch; yaw] (rad)
-%   u = [thrust; tau_phi; tau_theta; tau_psi] (N, Nm)
-%   params = struct of physical parameters
+%% PURPOSE
+% 6-DOF nonlinear drone model for truth simulation with simplified cross-coupling.
+%
+% INPUTS
+% - t      : time (unused in dynamics itself)
+% - x      : state [pos(3); vel(3); att(3)] in NED
+% - u      : control [thrust; tau_phi; tau_theta; tau_psi]
+% - params : struct containing mass, inertia, gravity, etc.
+%
+% OUTPUTS
+% - x_dot  : time derivative of the state
+%
+% MAJOR STEPS
+% 1) Unpack state and clamp roll/pitch (singularity guard)
+% 2) Unpack inputs and build rotation matrix
+% 3) Compute forces: gravity, thrust, drag, velocity limiting, Coriolis
+% 4) Translational acceleration and Euler-angle rate mapping
+% 5) Add simple gyroscopic coupling and compute angular rates
+% 6) Assemble derivatives
 
-% Unpack state
+%% 1) Unpack state
 pos = x(1:3);
 vel = x(4:6);
 att = x(7:9); % [phi; theta; psi]
@@ -17,14 +29,14 @@ max_angle = deg2rad(10); % Further reduced to 10 degrees for maximum stability
 att(1) = max(min(att(1), max_angle), -max_angle); % roll
 att(2) = max(min(att(2), max_angle), -max_angle); % pitch
 
-% Unpack control
+%% 2) Unpack control inputs
 T = u(1); % Total thrust (N)
 tau = u(2:4); % Torques (Nm)
 
 % Rotation matrix (body to NED)
 R = rotation_matrix(att(1), att(2), att(3));
 
-% Mass and inertia (assume typical values for now)
+%% 3) Physical parameters (with overrides)
 m = 0.5; % kg (QAV250)
 I = diag([0.0023, 0.0023, 0.004]); % kg*m^2 (QAV250)
 if isfield(params, 'mass'), m = params.mass; end
@@ -32,17 +44,17 @@ if isfield(params, 'I'), I = params.I; end
 
 g = params.g;
 
-% Dynamics with cross-coupling effects
+%% 4) Forces
 f_gravity = m * g;
 f_thrust = R * [0; 0; T];
 
-% Add aerodynamic drag (cross-coupling effect) - extremely aggressive damping
+% Aerodynamic drag in body frame with strong damping
 vel_body = R' * vel; % Transform velocity to body frame
 drag_coeff = 0.5; % Doubled drag coefficient for extreme damping
 f_drag_body = -drag_coeff * abs(vel_body) .* vel_body;
 f_drag = R * f_drag_body;
 
-% Add additional velocity limiting for safety - extremely aggressive
+% Additional velocity limiting for safety (progressive damping)
 vel_mag = norm(vel);
 if vel_mag > 5.0 % Much lower hard velocity limit
     vel_limit_factor = 5.0 / vel_mag;
@@ -55,7 +67,7 @@ elseif vel_mag > 3.0 % Add progressive damping even at lower speeds
     f_drag = f_drag + f_limit;
 end
 
-% Add centrifugal and Coriolis effects during turns
+% Centrifugal and Coriolis effects during turns (simplified)
 omega_body = [0; 0; 0]; % Angular velocity in body frame (simplified)
 if norm(vel) > 0.1 % Only apply when moving
     % Coriolis force: -2*m*omega_cross_vel
@@ -68,7 +80,7 @@ end
 % Translational acceleration with cross-coupling
 acc = (f_thrust + f_gravity + f_drag + f_coriolis) / m;
 
-% Angular rates (Euler angle rates) with improved numerical stability
+%% 5) Angular rates mapping (Euler) with singularity handling
 phi = att(1); theta = att(2);
 epsilon = 1e-6;
 
@@ -84,8 +96,7 @@ else
          0, sin(phi)/cos(theta), cos(phi)/cos(theta)];
 end
 
-% Add gyroscopic effects (cross-coupling between angular and translational motion)
-% This models the effect of rotor angular momentum on attitude dynamics
+% Add gyroscopic effects (rotor angular momentum coupling)
 rotor_angular_momentum = [0; 0; 0.1]; % Simplified rotor momentum
 gyro_torque = cross(omega_body, rotor_angular_momentum);
 
@@ -98,7 +109,7 @@ else
     omega = E \ (tau_total ./ diag(I));
 end
 
-% State derivatives
+%% 6) State derivatives
 x_dot = zeros(9,1);
 x_dot(1:3) = vel;
 x_dot(4:6) = acc;
@@ -106,7 +117,7 @@ x_dot(7:9) = omega;
 end
 
 function R = rotation_matrix(phi, theta, psi)
-% Rotation matrix from body to NED frame
+% Rotation matrix from body to NED frame (ZYX yaw-pitch-roll)
 Rz = [cos(psi), -sin(psi), 0;
       sin(psi),  cos(psi), 0;
       0,         0,        1];

@@ -1,4 +1,13 @@
 %% parameters.m - Drone EKF Simulation Parameters
+% PURPOSE
+% Central place to configure simulation timing, environment, vehicle, sensors,
+% and EKF noise/limits. Tweak here to change behavior globally.
+%
+% QUICK START
+% - Choose a profile below ('QAV250' or 'S500')
+% - Adjust sample times and duration in Section 1
+% - Tune EKF Q/R in Section 5 if needed
+%
 % Select drone profile: 'QAV250' or 'S500'
 profile = 'QAV250'; % Change to 'S500' for the other drone
 

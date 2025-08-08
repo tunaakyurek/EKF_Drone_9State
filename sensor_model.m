@@ -1,9 +1,21 @@
 function sensors = sensor_model(x, params, t)
-% sensor_model - Simulate IMU, GPS, barometer, and magnetometer measurements
-%   x: true state [pos; vel; att]
-%   params: parameters struct
-%   t: current time (s)
-%   sensors: struct with fields accel, gyro, gps, baro, mag
+%% PURPOSE
+% Generate synthetic sensor readings (IMU, GPS, barometer, magnetometer)
+% from the true state, including noise and slowly-varying biases.
+%
+% INPUTS
+% - x      : true state [pos(3); vel(3); att(3)]
+% - params : parameters struct with sensor noise settings
+% - t      : current time (s), used for discrete-time updates
+%
+% OUTPUTS
+% - sensors: struct with fields accel, gyro, gps, baro, mag
+%
+% MAJOR STEPS
+% 1) Initialize persistent biases and previous values
+% 2) Compute true specific force and body rates from finite differences
+% 3) Add noise and biases to form sensor outputs
+% 4) Update persistent memory for next call
 
 persistent accel_bias gyro_bias prev_t prev_vel prev_att
 if isempty(accel_bias)
@@ -14,16 +26,16 @@ if isempty(accel_bias)
     prev_att   = x(7:9);
 end
 
-% True values
+%% 1) Unpack true values
 pos = x(1:3);
 vel = x(4:6);
 att = x(7:9);
  g = params.g;
 
-% Time step for finite differences: align to IMU period for stability
+%% 2) Finite-difference step aligned to IMU period
 dt_fd = params.Ts.IMU;
 
-% IMU (body frame)
+%% 3) IMU (body frame) mechanization
 R = eul2rotm(att');
 
 % True linear acceleration in NED via finite difference
@@ -47,6 +59,7 @@ else
     omega_body = zeros(3,1);
 end
 
+%% 4) Add sensor noises and biases
 % IMU noise per sample (discrete-time) using noise densities
 accel_noise = params.IMU.accel_noise_density / sqrt(params.Ts.IMU) * randn(3,1);
 gyro_noise  = params.IMU.gyro_noise_density  / sqrt(params.Ts.IMU) * randn(3,1);
@@ -67,7 +80,7 @@ sensors.baro = -pos(3) + baro_noise;
 mag_noise = params.Mag.sigma_rad * randn;
 sensors.mag = att(3) + mag_noise;
 
-% Update persistence
+%% 5) Update persistence
 prev_t = t;
 prev_vel = vel;
 prev_att = att;

@@ -1,9 +1,18 @@
 %% main_random.m - Smooth 3D random-walk simulation with EKF and live animation
-% Goal:
-% - Keep EKF algorithms unchanged (sensor-only EKF)
-% - Drive the drone with a smooth, realistic random-walk controller
-% - Show real-time 3D animation (true path, EKF path, GPS points)
-% - After animation, show EKF accuracy/metrics from the run
+% PURPOSE
+% Run a full simulation loop that:
+% - Keeps EKF algorithms unchanged (sensor-only prediction and selective updates)
+% - Drives the "true" drone with a smooth random-walk velocity command
+% - Logs states/sensors and plays back a simple animation
+% - Optionally computes basic performance plots
+%
+% MAJOR STEPS
+% 1) Load parameters and initialize state/estimate/covariance
+% 2) Generate smooth random-walk velocity commands (OU process)
+% 3) Convert velocity commands to thrust and gentle attitude/torques
+% 4) Integrate true dynamics, simulate sensors, and run EKF
+% 5) Log data and periodically print status
+% 6) Animate playback and run analysis
 
 clear; clc; close all;
 
@@ -63,7 +72,7 @@ fprintf('dt: %.1f ms, duration: %.1f s, steps: %d\n\n', dt*1000, T_end, N);
 for k = 1:N
     current_time = t(k);
 
-    %% 1) Command generation
+    %% 1) Command generation (hover for warm-up, then OU random-walk)
     if k <= warmup_steps
         % Hover during warm-up
         vel_cmd = [0; 0; 0];
