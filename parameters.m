@@ -5,10 +5,10 @@ profile = 'QAV250'; % Change to 'S500' for the other drone
 %% 1. General Simulation & Timing Parameters
 params.solver_type = 'Fixed-step';
 params.Ts.physics = 0.002;   % Physics sim rate (500 Hz)
-params.Ts.IMU    = 0.005;    % IMU sample time (200 Hz)
-params.Ts.GPS    = 0.05;      % GPS sample time (20 Hz)
-params.Ts.Baro   = 0.05;     % Barometer sample time (20 Hz)
-params.Ts.Mag    = 0.05;     % Magnetometer sample time (20 Hz)
+params.Ts.IMU    = 0.004;    % IMU sample time (250 Hz)
+params.Ts.GPS    = 0.1;      % GPS sample time (10 Hz)
+params.Ts.Baro   = 0.02;     % Barometer sample time (50 Hz)
+params.Ts.Mag    = 0.02;     % Magnetometer sample time (50 Hz)
 params.sim_duration = 60;   % seconds
 
 %% 2. Location-Specific Parameters (Espoo, Finland)
@@ -44,10 +44,14 @@ params.IMU.accel_noise_density = 6.9e-4;   % (m/s^2)/sqrt(Hz)
 params.IMU.accel_bias_instab  = 0.008;     % m/s^2
 params.IMU.gyro_noise_density = 4.9e-5;    % (rad/s)/sqrt(Hz)
 params.IMU.gyro_bias_instab   = 8.7e-5;    % rad/s
-params.GPS.sigma_xy = 1.5;                % meters (horizontal)
-params.GPS.sigma_z  = 2.5;                % meters (vertical)
-params.Baro.sigma_z = 0.6;                % meters
-params.Mag.sigma_deg = 3.0;               % degrees
+% Sensor noise tuned more realistically:
+% GPS: ~1.0 m CEP horizontal, ~1.5-2.0 m vertical for quality module
+params.GPS.sigma_xy = 0.8;                % meters (horizontal)
+params.GPS.sigma_z  = 1.6;                % meters (vertical)
+% Barometer: high-resolution digital baro (0.2-0.5 m RMS in calm room)
+params.Baro.sigma_z = 0.35;               % meters
+% Magnetometer: 2-3 deg typical with soft/hard-iron compensated
+params.Mag.sigma_deg = 2.0;               % degrees
 params.Mag.sigma_rad = params.Mag.sigma_deg * pi/180; % radians
 
 %% 5. EKF Tuning Parameters (Q & R Matrices) - EXTREMELY OPTIMIZED for Enhanced Performance
@@ -55,7 +59,9 @@ params.Mag.sigma_rad = params.Mag.sigma_deg * pi/180; % radians
 % Position: Extremely low uncertainty for extremely smooth tracking
 % Velocity: Extremely low uncertainty for extremely stable response
 % Attitude: Extremely increased for extremely good stability and responsiveness
-params.Q = diag([0.01 0.01 0.01, 0.08 0.08 0.1, 0.06 0.06 0.08]); % EXTREMELY OPTIMIZED process noise
+% Tuned for improved GPS/Baro fusion with sensor-only EKF
+% Increase velocity process noise so GPS can correct faster; modest attitude noise
+params.Q = diag([0.02 0.02 0.02, 0.10 0.10 0.12, 0.05 0.05 0.06]);
 
 % ENHANCED: Adaptive noise scaling parameters - extremely conservative
 params.adaptive_noise = true;  % Enable adaptive noise scaling
@@ -66,9 +72,9 @@ params.gps_outage_max_scale = 1.5; % Extremely reduced maximum scaling during GP
 
 % OPTIMIZED: Measurement noise matrices for robust sensor fusion
 % GPS: Slightly more conservative for better rejection of outliers
-params.R_gps = diag([2.0^2, 2.0^2, 3.0^2]); % INCREASED for robustness
-params.R_baro = params.R_gps(3,3); % Equal weight with GPS-z
-params.R_mag = (6 * pi/180)^2; % INCREASED: 6 degrees for mag interference rejection
+params.R_gps = diag([params.GPS.sigma_xy^2, params.GPS.sigma_xy^2, params.GPS.sigma_z^2]);
+params.R_baro = (params.Baro.sigma_z)^2;
+params.R_mag = (params.Mag.sigma_deg * pi/180)^2;
 
 % IMPROVED: Innovation gate thresholds for robust measurement acceptance
 params.innovation_gate_gps = 8.0;   % Reduced GPS innovation threshold (m)

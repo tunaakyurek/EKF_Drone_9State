@@ -18,14 +18,33 @@ gyro_meas = imu(4:6);  % body frame
 
 g = params.g;
 
-% 1. Update attitude using gyro (Euler integration)
+% 1. Update attitude using gyro (Euler integration) with singularity guard
 phi = att(1); theta = att(2); psi = att(3);
-E = [1, sin(phi)*tan(theta), cos(phi)*tan(theta);
-     0, cos(phi),           -sin(phi);
-     0, sin(phi)/cos(theta), cos(phi)/cos(theta)];
+
+% Guard cos(theta)
+cos_theta = cos(theta);
+if abs(cos_theta) < 1e-6
+    cos_theta = 1e-6 * sign(cos_theta + (cos_theta==0));
+end
+
+sin_phi = sin(phi); cos_phi = cos(phi);
+tan_theta = sin(theta)/cos_theta;
+
+E = [1, sin_phi*tan_theta,  cos_phi*tan_theta;
+     0, cos_phi,            -sin_phi;
+     0, sin_phi/cos_theta,   cos_phi/cos_theta];
+
 att_dot = E * gyro_meas;
 
-% 2. Update velocity using accel (rotate to NED, add gravity)
+% Optional rate limiting for numerical stability
+if isfield(params, 'max_angular_rate')
+    max_rate = params.max_angular_rate;
+else
+    max_rate = deg2rad(200);
+end
+att_dot = max(min(att_dot, max_rate), -max_rate);
+
+% 2. Update velocity using accel (rotate to NED, add gravity) with stable R
 R = rotation_matrix(phi, theta, psi);
 vel_dot = R * accel_meas + g;
 

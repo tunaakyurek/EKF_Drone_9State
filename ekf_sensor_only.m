@@ -33,6 +33,9 @@ catch ME
     x_pred = x_est + [x_est(4:6); zeros(3,1); zeros(3,1)] * dt;
 end
 
+% Clamp predicted attitude to realistic range to avoid transient divergence
+x_pred(7:9) = max(min(x_pred(7:9), deg2rad(60)), -deg2rad(60));
+
 % Validate prediction
 if any(~isfinite(x_pred))
     warning('EKF: Invalid prediction. Using previous state.');
