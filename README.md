@@ -48,7 +48,5 @@ You should see console progress during the run, followed by an animation and opt
 - If the animation or analysis functions are missing in your MATLAB path, comment out those calls in `main_random.m` or add your own plotting. The core simulation and EKF will still run.
 - If you observe NaN/Inf warnings, try reducing `params.sim_duration`, loosening `params.Q`, or lowering controller gains in `main_random.m`.
 
-### License
-No explicit license provided. Use responsibly within your organization or add a license file as needed.
 
 
